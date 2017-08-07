@@ -2,7 +2,7 @@ let gulp = require('gulp');
 let path = require('path');
 let clean = require('gulp-clean');
 let scss2css = require('gulp-sass');
-let minifyCss = require('gulp-minify-css');
+let cssMinify = require('gulp-minify-css');
 let cssSpriter = require('gulp-css-spriter');
 let imageMin = require('gulp-imagemin');
 let imagePngquant = require('imagemin-pngquant');
@@ -61,7 +61,6 @@ gulp.task('css-spriter', ['scss-css'], () => {
                         padding: 10
                     }
                 }))
-                .pipe(minifyCss())
                 .pipe(gulp.dest(prejectOutput.css))
 });
 //image-minify
@@ -77,7 +76,7 @@ gulp.task('image-minify', ['css-spriter'], () => {
 //css-minify
 gulp.task('css-minify', ['image-minify'], () => {
     return gulp.src(prejectOutput.css + 'index.css')
-                .pipe(minifyCss())
+                .pipe(cssMinify())
                 .pipe(gulp.dest(prejectOutput.css))
 });
 
