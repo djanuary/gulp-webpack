@@ -4,6 +4,7 @@ let getEntry = require('./webpack/get-entry');
 let getOutput = require('./webpack/get-output');
 let getLoaders = require('./webpack/get-loaders');
 let getPlugins = require('./webpack/get-plugins');
+let getResolve = require('./webpack/get-resolve');
 module.exports = (name,env) => {
     let config = {};
     //入口
@@ -12,16 +13,11 @@ module.exports = (name,env) => {
     config.output = getOutput(name, env);
     //模块
     config.module = {
-        loaders : getLoaders()
+        loaders : getLoaders(name, env)
     };
     //后缀拓展，别名引用设置
-    config.resolve = {
-        extensions:['.js'],
-        alias:{
-            //设置全局别名引用
-        }
-    };
+    config.resolve = getResolve(name, env);
     //插件
-    config.plugins = getPlugins()
+    config.plugins = getPlugins(name,env);
     return config;
 }
