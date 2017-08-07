@@ -5,10 +5,13 @@ let scss2css = require('gulp-sass');
 let minifyCss = require('gulp-minify-css');
 let cssSpriter = require('gulp-css-spriter');
 let imageMin = require('gulp-imagemin');
-
+let webpack = require('webpack');
+let webpackConifg = require('./webpack.config.js'); 
+//环境变量
 let NODE_ENV = process.env.NODE_ENV.split('::'),
     projectName = NODE_ENV[0],
     projectDev = NODE_ENV[1] == 'dev';
+//入口
 let entryPath = path.join(__dirname,'src/'),
     outPath = path.join(__dirname,'dist/');
 
@@ -31,23 +34,23 @@ let prejectOut = {
 }
 
 //删除原有图片
-gulp.task('clean-image',() => {
+gulp.task('clean-image', () => {
     return gulp.src(prejectOut.image)
                 .pipe(clean())
 });
 //复制图片
-gulp.task('copy-image',['clean-image'],() => {
+gulp.task('copy-image', ['clean-image'], () => {
     return gulp.src([ prejectEntry.image, prejectPublicEntry.image ])
                 .pipe(gulp.dest(prejectOut.image))
 });
 //scss转css
-gulp.task('scss-css',['copy-image'],() => {
+gulp.task('scss-css', ['copy-image'], () => {
     return gulp.src(prejectEntry.scss + 'index.scss')
                 .pipe(scss2css())
                 .pipe(gulp.dest(prejectOut.css))
 });
 //css-spriter
-gulp.task('css-spriter',['scss-css'],() => {
+gulp.task('css-spriter', ['scss-css'], () => {
     return gulp.src(prejectOut.css + 'index.css')
                 .pipe(cssSpriter({
                     // 生成的spriter的位置
@@ -58,20 +61,29 @@ gulp.task('css-spriter',['scss-css'],() => {
                 .pipe(gulp.dest(prejectOut.css))
 });
 //css-minify
-gulp.task('css-minify',['css-spriter'],() => {
+gulp.task('css-minify', ['css-spriter'], () => {
     return gulp.src(prejectOut.css + 'index.css')
                 .pipe(minifyCss())
                 .pipe(gulp.dest(prejectOut.css))
 });
 //image-minify
-gulp.task('image-minify',['css-minify'],() => {
+gulp.task('image-minify', ['css-minify'], () => {
     return gulp.src(prejectOut.image + '**')
                 .pipe(imageMin())
                 .pipe(gulp.dest(prejectOut.image))
-})
+});
+//webpack
+let webpackRun = webpack(webpackConifg(projectName, projectDev));
+gulp.task('webpack', () => {
+    return webpackRun.run((err, status) => {
+        console.log('webpack:' + err);
+        console.log('webpack:' + status);
+    })
+});
+
 gulp.task('default', () => {
     return (() => {
         let runCss = projectDev ? 'css-spriter' : 'image-minify';
-        gulp.start(runCss);
+        gulp.start(runCss,'webpack');
     })()
 });
