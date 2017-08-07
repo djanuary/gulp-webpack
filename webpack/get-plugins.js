@@ -13,7 +13,8 @@ module.exports = (name, env) => {
         new webpack.optimize.ModuleConcatenationPlugin(),
         new webpack.optimize.CommonsChunkPlugin('vendor')
     ];
-    if(env != 'dev'){
+    //生产环境进行压缩
+    if(env == 'pro'){
         plugins.push(new webpack.optimize.UglifyJsPlugin());
     }
     return plugins;

@@ -82,16 +82,16 @@ gulp.task('css-minify', ['image-minify'], () => {
 });
 
 //webpack
-let webpackRun = webpack(webpackConifg(projectName, projectEnv));
 gulp.task('webpack', () => {
-    return webpackRun.run((err, status) => {
+    let webpackPlugin = webpack(webpackConifg(projectName, projectEnv));
+    webpackPlugin.run((err, status) => {
         console.log('webpack:' + err);
         console.log('webpack:' + status);
     })
 });
 
 // css,js
-let runCss = projectEnv == 'dev' ? 'css-spriter' : 'css-minify';
+let runCss = projectEnv == 'pro' ? 'css-minify' : 'css-spriter';
 let runJs = 'webpack';
 
 //watch
