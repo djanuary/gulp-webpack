@@ -4,8 +4,8 @@
   "description": "gulp webpack ",
   "main": "index.js",
   "scripts": {
-    "projectTestDev": "set NODE_ENV=test::dev&&gulp",
-    "projectTestPro": "set NODE_ENV=test::pro&&gulp"
+    "testDev": "set NODE_ENV=test::dev&&gulp",
+    "testPro": "set NODE_ENV=test::pro&&gulp"
   },
   "repository": {
     "type": "git",
