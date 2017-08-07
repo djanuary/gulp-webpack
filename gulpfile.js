@@ -6,6 +6,8 @@ let cssMinify = require('gulp-minify-css');
 let cssSpriter = require('gulp-css-spriter');
 let imageMin = require('gulp-imagemin');
 let imagePngquant = require('imagemin-pngquant');
+let fileInclude = require('gulp-file-include');
+let rename = require('gulp-rename');
 let webpack = require('webpack');
 let webpackConifg = require('./webpack.config.js'); 
 //环境变量
@@ -20,17 +22,19 @@ let entryPath = path.join(__dirname,'src/'),
 let prejectPublicEntry = {
     image:entryPath + 'image/public/**',
     js:entryPath + 'js/**',
-    css:entryPath + 'scss/**'
+    css:entryPath + 'scss/**',
+    html:entryPath + 'html/**'
 }
 let prejectEntry = {
     image:entryPath + 'image/' + projectName + '/**',
     scss:entryPath + 'scss/' + projectName + '/',
+    html:entryPath + 'html/' + projectName + '/*.html',
 }
 //工程资源导出目录
 let prejectOutput = {
     image:outputPath + projectName + '/image/',
     css:outputPath + projectName + '/css/',
-    js:outputPath + projectName + '/js/',
+    html:outputPath + projectName + '/html/',
 }
 
 //删除原有图片
@@ -45,13 +49,18 @@ gulp.task('copy-image', ['clean-image'], () => {
 });
 //scss转css
 gulp.task('scss-css', ['copy-image'], () => {
-    return gulp.src(prejectEntry.scss + 'index.scss')
+    return gulp.src(prejectEntry.scss + '*.scss')
                 .pipe(scss2css())
+                .pipe(rename((path) => {
+                    path.dirname += "/";
+                    path.basename = projectName;
+                    path.extname = ".css";
+                }))
                 .pipe(gulp.dest(prejectOutput.css))
 });
 //css-spriter
 gulp.task('css-spriter', ['scss-css'], () => {
-    return gulp.src(prejectOutput.css + 'index.css')
+    return gulp.src(prejectOutput.css + '*.css')
                 .pipe(cssSpriter({
                     // 生成的spriter的位置
                     spriteSheet: prejectOutput.image +'spriter/' + projectName + '.png',
@@ -75,7 +84,7 @@ gulp.task('image-minify', ['css-spriter'], () => {
 });
 //css-minify
 gulp.task('css-minify', ['image-minify'], () => {
-    return gulp.src(prejectOutput.css + 'index.css')
+    return gulp.src(prejectOutput.css + '*.css')
                 .pipe(cssMinify())
                 .pipe(gulp.dest(prejectOutput.css))
 });
@@ -89,19 +98,26 @@ gulp.task('webpack', () => {
     })
 });
 
-// css,js
-let runCss = projectEnv == 'pro' ? 'css-minify' : 'css-spriter';
-let runJs = 'webpack';
-
-//watch
-gulp.task('watch', () => {
+//html-创建
+gulp.task('html-create', () => {
+    // 适配page中所有文件夹下的所有html，排除page下的include文件夹中html
+    gulp.src(prejectEntry.html)
+        .pipe(fileInclude({
+          prefix: '@@',
+          basepath: '@file'
+        }))
+    .pipe(gulp.dest(prejectOutput.html));
+});
+//默认执行
+gulp.task('default',() => {
+    // css,js
+    let runCss = projectEnv == 'pro' ? 'css-minify' : 'css-spriter';
+    let runJs = 'webpack';
+    let runHtml = 'html-create';
+    //watch
     gulp.watch(prejectPublicEntry.css,[runCss]);
     gulp.watch(prejectPublicEntry.js,[runJs]);
-});
-
-
-
-
-gulp.task('default',() => {
-    gulp.start(runCss,runJs,'watch');
+    gulp.watch(prejectPublicEntry.html,[runHtml]);
+    //运行
+    gulp.start(runCss,runJs,runHtml);
 });
