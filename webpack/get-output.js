@@ -1,6 +1,5 @@
-let path = require('path');
-module.exports = (name,env) => ({
-    path : path.join(__dirname,'/../dist/'),
+module.exports = (name,env,dirname) => ({
+    path :dirname + '/dist/',
     publicPath : '',
     filename : name + '/js/[name].js'
 })
