@@ -10,6 +10,10 @@ module.exports = (name, env) => {
         所以在webpack3中增加了这个功能，我们可以在配置项中添加对应的配置来开启该功能
     */
     let plugins = [
+        new webpack.ProvidePlugin({
+            $ : 'jQuery',
+            jQuery : 'jQuery',
+        }),
         new webpack.optimize.ModuleConcatenationPlugin(),
         new webpack.optimize.CommonsChunkPlugin('vendor')
     ];
