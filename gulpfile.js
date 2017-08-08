@@ -9,7 +9,7 @@ let imagePngquant = require('imagemin-pngquant');
 let fileInclude = require('gulp-file-include');
 let rename = require('gulp-rename');
 let runSequence = require('run-sequence');//解决gulp异步执行问题，添加依赖执行
-let webServer = require('gulp-webserver');
+let connect = require('gulp-connect');
 let webpack = require('webpack');
 let webpackConifg = require('./webpack.config.js'); 
 //环境变量
@@ -111,15 +111,12 @@ gulp.task('html-create', () => {
     .pipe(gulp.dest(prejectOutput.html));
 });
 //webserver
-gulp.task('webServer',() => {
-    return gulp.src(path.join(__dirname))
-                .pipe(webServer({
-                    port:8080,
-                    path:'/',
-                    livereload: true,
-                    directoryListing: true,
-                    open: true
-                }))
+gulp.task('web-server',() => {
+    connect.server({
+        root: 'dist/' + projectName,
+        port: 8000,
+        livereload: true
+    });
 });
 
 //-----------build-----------------
@@ -137,15 +134,14 @@ gulp.task('html-build',() => {
 gulp.task('js-build',() => {
     return runSequence('webpack');
 });
-gulp.task('webServer-build',() => {
-    return runSequence('webServer');
-});
 //默认执行
 gulp.task('default',() => {
-    runSequence('clean','css-build','js-build','html-build','webServer-build',() => {
+    runSequence('clean','css-build','js-build','html-build',() => {
         //watch
         gulp.watch(prejectPublicEntry.css,['css-build']);
         gulp.watch(prejectPublicEntry.js,['js-build']);
         gulp.watch(prejectPublicEntry.html,['html-build']);
+        //webserver
+        gulp.start('web-server');
     });
 });
