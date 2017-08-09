@@ -20,8 +20,8 @@ let entryPath = path.join(__dirname,'src/'),
     outputPath = path.join(__dirname,'dist/');
 
 //工程资源引入目录
-let prejectPublicEntry = {
-    image:entryPath + 'image/public/',
+let prejectDevEntry = {
+    image:entryPath + 'image/',
     js:entryPath + 'js/',
     scss:entryPath + 'scss/',
     html:entryPath + 'html/'
@@ -45,7 +45,7 @@ gulp.task('clean', () => {
 });
 //复制图片
 gulp.task('copy-image', () => {
-    return gulp.src([ prejectEntry.image + '**/*.{jpg,png,gif}', prejectPublicEntry.image + '**/*.{jpg,png,gif}'])
+    return gulp.src([ prejectEntry.image + '**/*.{jpg,png,gif}', prejectDevEntry.image + 'public/**/*.{jpg,png,gif}'])
         .pipe(gulp.dest(prejectOutput.image))
 });
 //scss转css
@@ -112,6 +112,7 @@ gulp.task('web-server',() => {
         port: 8000,
         livereload: true
     });
+    //connect.serverClose();
 });
 
 //-----------build-----------------
@@ -121,25 +122,34 @@ gulp.task('css-build',() => {
         runCss.push('css-minify');
         runCss.push('image-minify');
     }
+    runCss.push(reloadHtml);
     return runSequence.apply(null,runCss);
 });
 gulp.task('html-build',() => {
-    return runSequence('html-create');
+    return runSequence('html-create',reloadHtml);
 });
 gulp.task('js-build',() => {
-    return runSequence('webpack');
+    return runSequence('webpack',reloadHtml);
 });
+//---------reload--------------
+gulp.task('reload-html',() => {
+    return gulp.src(prejectOutput.html + '*.html')
+                .pipe(connect.reload())
+});
+function reloadHtml(){
+    if(projectEnv == 'pro'){ return; }
+    gulp.start('reload-html');
+}
+function defaultBack(){
+    if(projectEnv == 'pro'){ return;}
+    //watch
+    gulp.watch(prejectDevEntry.scss + '**/*.scss', ['css-build']);
+    gulp.watch(prejectDevEntry.js + '**/*.js', ['js-build']);
+    gulp.watch(prejectDevEntry.html + '**/*.html', ['html-build']);
+    //webserver
+    gulp.start('web-server');
+}
 //默认执行
 gulp.task('default',() => {
-    runSequence('clean','css-build','js-build','html-build',() => {
-        if(projectEnv == 'pro'){
-            return;
-        }
-        //watch
-        gulp.watch(prejectPublicEntry.scss + '*.scss', ['css-build']);
-        gulp.watch(prejectPublicEntry.js + '*.js', ['js-build']);
-        gulp.watch(prejectPublicEntry.html + '*.html', ['html-build']);
-        //webserver
-        gulp.start('web-server');
-    });
+    runSequence('clean','css-build','js-build','html-build',defaultBack);
 });
