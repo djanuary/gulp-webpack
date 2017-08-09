@@ -4,8 +4,7 @@ let clean = require('gulp-clean');
 let scss2css = require('gulp-sass');
 let cssMinify = require('gulp-minify-css');
 let cssSpriter = require('gulp-css-spriter');
-let imageMin = require('gulp-imagemin');
-let imagePngquant = require('imagemin-pngquant');
+let smushit = require('gulp-smushit');
 let fileInclude = require('gulp-file-include');
 let rename = require('gulp-rename');
 let runSequence = require('run-sequence');//解决gulp异步执行问题，添加依赖执行
@@ -22,15 +21,15 @@ let entryPath = path.join(__dirname,'src/'),
 
 //工程资源引入目录
 let prejectPublicEntry = {
-    image:entryPath + 'image/public/**',
-    js:entryPath + 'js/**',
-    css:entryPath + 'scss/**',
-    html:entryPath + 'html/**'
+    image:entryPath + 'image/public/',
+    js:entryPath + 'js/',
+    scss:entryPath + 'scss/',
+    html:entryPath + 'html/'
 }
 let prejectEntry = {
-    image:entryPath + 'image/' + projectName + '/**',
+    image:entryPath + 'image/' + projectName + '/',
     scss:entryPath + 'scss/' + projectName + '/',
-    html:entryPath + 'html/' + projectName + '/*.html',
+    html:entryPath + 'html/' + projectName + '/',
 }
 //工程资源导出目录
 let prejectOutput = {
@@ -46,12 +45,12 @@ gulp.task('clean', () => {
 });
 //复制图片
 gulp.task('copy-image', () => {
-    return gulp.src([ prejectEntry.image, prejectPublicEntry.image ])
+    return gulp.src([ prejectEntry.image + '**/*.{jpg,png,gif}', prejectPublicEntry.image + '**/*.{jpg,png,gif}'])
         .pipe(gulp.dest(prejectOutput.image))
 });
 //scss转css
 gulp.task('scss-css', () => {
-    return gulp.src(prejectEntry.scss + '*.scss')
+    return gulp.src(prejectEntry.scss + 'index.scss')
         .pipe(scss2css())
         .pipe(rename((path) => {
             path.dirname += "/";
@@ -76,17 +75,13 @@ gulp.task('css-spriter', () => {
 });
 //image-minify
 gulp.task('image-minify', () => {
-    return gulp.src(prejectOutput.image + '**')
-        .pipe(imageMin({
-            progressive: true, // 无损压缩JPG图片
-            svgoPlugins: [{removeViewBox: false}], // 不移除svg的viewbox属性
-            use: [imagePngquant()] // 使用pngquant插件进行深度压缩
-        }))
+    return gulp.src(prejectOutput.image + '**/*.{jpg,png}')
+        .pipe(smushit())
         .pipe(gulp.dest(prejectOutput.image))
 });
 //css-minify
 gulp.task('css-minify', () => {
-    return gulp.src(prejectOutput.css + '**')
+    return gulp.src(prejectOutput.css + '**/*.css')
         .pipe(cssMinify())
         .pipe(gulp.dest(prejectOutput.css))
 });
@@ -103,7 +98,7 @@ gulp.task('webpack', () => {
 //html-创建
 gulp.task('html-create', () => {
     // 适配page中所有文件夹下的所有html，排除page下的include文件夹中html
-    return gulp.src(prejectEntry.html)
+    return gulp.src(prejectEntry.html + '*.html')
         .pipe(fileInclude({
           prefix: '@@',
           basepath: '@file'
@@ -123,8 +118,8 @@ gulp.task('web-server',() => {
 gulp.task('css-build',() => {
     let runCss = ['copy-image','scss-css','css-spriter'];
     if(projectEnv == 'pro'){
-        runCss.push('image-minify');
         runCss.push('css-minify');
+        runCss.push('image-minify');
     }
     return runSequence.apply(null,runCss);
 });
@@ -137,10 +132,13 @@ gulp.task('js-build',() => {
 //默认执行
 gulp.task('default',() => {
     runSequence('clean','css-build','js-build','html-build',() => {
+        if(projectEnv == 'pro'){
+            return;
+        }
         //watch
-        gulp.watch(prejectPublicEntry.css,['css-build']);
-        gulp.watch(prejectPublicEntry.js,['js-build']);
-        gulp.watch(prejectPublicEntry.html,['html-build']);
+        gulp.watch(prejectPublicEntry.scss + '*.scss', ['css-build']);
+        gulp.watch(prejectPublicEntry.js + '*.js', ['js-build']);
+        gulp.watch(prejectPublicEntry.html + '*.html', ['html-build']);
         //webserver
         gulp.start('web-server');
     });
