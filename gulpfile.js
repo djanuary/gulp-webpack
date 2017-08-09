@@ -64,9 +64,9 @@ gulp.task('css-spriter', () => {
     return gulp.src(prejectOutput.css + '*.css')
         .pipe(cssSpriter({
             // 生成的spriter的位置
-            spriteSheet: prejectOutput.image +'spriter/' + projectName + 'spriter.png',
+            spriteSheet: prejectOutput.image +'spriter/' + projectName + '-spriter.png',
             // 生成样式文件图片引用地址的路径
-            pathToSpriteSheetFromCSS: '../image/spriter/' + projectName + 'spriter.png',
+            pathToSpriteSheetFromCSS: '../image/spriter/' + projectName + '-spriter.png',
             spritesmithOptions: {
                 padding: 10
             }
