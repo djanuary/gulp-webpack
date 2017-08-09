@@ -108,11 +108,16 @@ gulp.task('html-create', () => {
 //webserver
 gulp.task('web-server',() => {
     connect.server({
+        //host:'',
         root: 'dist/' + projectName,
-        port: 8000,
-        livereload: true
+        port: 8888,
+        livereload: true,
+        index:false,
+        middleware:(connect,opt) => {
+            openBrowser('http://' + opt.host + ':' + opt.port);
+            return []
+        }
     });
-    //connect.serverClose();
 });
 
 //-----------build-----------------
@@ -148,6 +153,10 @@ function defaultBack(){
     gulp.watch(prejectDevEntry.html + '**/*.html', ['html-build']);
     //webserver
     gulp.start('web-server');
+}
+function openBrowser(url){
+    let c = require('child_process');
+        c.exec('start ' + url);
 }
 //默认执行
 gulp.task('default',() => {

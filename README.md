@@ -18,6 +18,8 @@ gulp-css-spriter => 雪碧图
 
 gulp-file-include => 复用html
 
+gulp-connect => webserver
+
 webpack 说明
 
 webpack => 模块化开发，打包js
